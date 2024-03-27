@@ -9,4 +9,10 @@ class Entry(db.Model):
     is_published= db.Column(db.Boolean, default=False)
 
     def __str__(self):
-        return f"<Entry {self.name}>"
+        return (f"<Entry\n"
+                f"id: {self.id}\n"
+                f"title: {self.title}\n"
+                f"content: {self.content}\n"
+                f"creation_date: {self.creation_date}\n"
+                f"is_published: {self.is_published}>"
+                )

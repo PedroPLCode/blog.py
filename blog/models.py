@@ -1,12 +1,12 @@
-#from datetime import datetime
+from datetime import datetime
 from blog import db
 
-class Author(db.Model):
+class Entry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), index=True, unique=True)
-    comment = db.Column(db.String(100), index=True)
-    books = db.relationship("Book", backref="author")
+    title = db.Column(db.String(80), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    creation_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_published= db.Column(db.Boolean, default=False)
 
     def __str__(self):
-        return f"<User {self.name}>"
-
+        return f"<Entry {self.name}>"

@@ -10,6 +10,7 @@ flask==3.0.2
 Flask-Migrate==4.0.7
 flask-shell-ipython==0.5.1
 flask-sqlalchemy==3.1.1
+flask-wtf==1.2.1
 greenlet==3.0.3
 importlib-metadata==7.1.0
 ipython==8.18.1
@@ -33,4 +34,5 @@ traitlets==5.14.2
 typing-extensions==4.10.0
 wcwidth==0.2.13
 werkzeug==3.0.1
+wtforms==3.1.2
 zipp==3.18.1

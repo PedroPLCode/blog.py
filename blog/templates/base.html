@@ -5,47 +5,50 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
  <meta name="description" content="">
- <title>Mój pierwszy blog</title>
-
+ <title>My blog</title>
  <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/starter-template/">
-
  <!-- Bootstrap core CSS -->
  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-
-   <link href="styles.css" rel="stylesheet">
-
- <style>
-   body {
-     padding-top: 5rem;
-   }
- </style>
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
 <body>
+  
  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-   <a class="navbar-brand" href="#">Mój blog</a>
+   <a class="navbar-brand" href="/">My blog</a>
+   <a class="navbar-brand ml-3" href="/new-post/">New Entry</a>
    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
      aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
      <span class="navbar-toggler-icon"></span>
    </button>
-
    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
      <ul class="navbar-nav mr-auto">
      </ul>
      <form class="form-inline my-2 my-lg-0">
        <input class="form-control mr-sm-2" type="text" placeholder="Szukaj" aria-label="Szukaj">
-       <button class="btn btn-secondary my-2 my-sm-0" type="submit">Szukaj</button>
+       <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
      </form>
    </div>
  </nav>
 
  <main role="main" class="container">
 
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-info mt-3" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
+
    {% block content %}
    {% endblock %}
 
  </main><!-- /.container -->
+
  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
    crossorigin="anonymous"></script>

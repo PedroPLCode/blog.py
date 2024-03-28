@@ -2,9 +2,21 @@
 
 {% block content %}
 
+<div class="d-flex flex-column justify-content-center align-items-center">
+  {% if search_query %}
+    <h4>Search results for: {{ search_query }}</h4>
+  {% endif %}
+
+  {% if counter %}
+    <h5 class="mt-1 mb-4">Found {{ counter }} posts.</h5>
+  {% else %}
+    <h5 class="mt-1 mb-4">{{ counter }} posts to show.</h5>
+  {% endif %}
+</div>
+
 {% for post in all_posts %}
 
-<div>
+<div class="mb-5">
   <div class="d-flex flex-row justify-content-between align-items-center gap-2">
     <div>
       <h2>{{ post.title }}</h2>
@@ -33,7 +45,7 @@
   </div>
   <p>{{ post.creation_date.strftime('%Y-%m-%d') }}</p>
   <p>
-      {{ post.content}}
+    {{ post.content}}
   </p>
 </div>
 

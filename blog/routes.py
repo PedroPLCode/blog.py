@@ -23,14 +23,35 @@ def handle_page_not_found(error):
 @app.route('/')
 def homepage_view():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    return render_template("homepage.html", all_posts=all_posts)
-
+    return render_template("homepage.html", 
+                           all_posts=all_posts,
+                           counter=all_posts.count()
+                           )
+    
+    
+@app.route('/search/')
+def search_posts():
+    search_query = request.args.get("q", "")
+            
+    if search_query:
+        posts = Entry.query.filter(
+            (Entry.is_published == True) & (Entry.title.contains(search_query))
+        ).order_by(Entry.creation_date.desc())
+    else: 
+        posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    
+    return render_template("homepage.html", 
+                           all_posts=posts,
+                           counter=posts.count(),
+                           search_query=search_query)
+    
 
 @app.route('/drafts/')
 @login_required
 def list_drafts():
     drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
-    return render_template("drafts.html", drafts=drafts)
+    return render_template("drafts.html", 
+                           drafts=drafts)
 
 
 @app.route("/new-post/", methods=["GET", "POST"])
@@ -44,7 +65,9 @@ def create_new_entry():
             return redirect(url_for("homepage_view"))
         else:
             errors = form.errors
-    return render_template("entry_form.html", form=form, errors=errors)
+    return render_template("entry_form.html", 
+                           form=form, 
+                           errors=errors)
 
 
 @app.route("/edit-post/<int:entry_id>", methods=["GET", "POST"])
@@ -59,7 +82,10 @@ def edit_entry(entry_id):
             return redirect(url_for("homepage_view"))
         else:
             errors = form.errors
-    return render_template("entry_form.html", form=form, errors=errors)
+    return render_template("entry_form.html", 
+                           form=form, 
+                           entry_id=entry_id,
+                           errors=errors)
 
 
 @app.route("/delete-post/<int:entry_id>", methods=["POST"])
@@ -84,7 +110,9 @@ def login():
             return redirect(next_url or url_for('homepage_view'))
         else:
             errors = form.errors
-    return render_template("login_form.html", form=form, errors=errors)
+    return render_template("login_form.html", 
+                           form=form,
+                           errors=errors)
 
 
 @app.route('/logout/', methods=['GET', 'POST'])

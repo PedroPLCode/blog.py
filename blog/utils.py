@@ -30,3 +30,10 @@ def create_or_edit_post(form, entry=None):
         message = f'New post {new_entry.title} added succesfully.'
     db.session.commit()
     flash(message)
+    
+    
+def delete_post(post_to_delete):
+    db.session.delete(post_to_delete)
+    message = f'Post {post_to_delete.title} removed succesfully.'
+    db.session.commit()
+    flash(message)

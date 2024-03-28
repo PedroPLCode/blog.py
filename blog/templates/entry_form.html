@@ -1,25 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>
-   Entry Form
-</h3>
+<h3>Entry Form</h3>
 
 <form class="mb-5" action="" method="POST">
   {{form.hidden_tag()}}
-   <div class="form-group">
-       <label for="title">Title</label>
-       {{ form.title(class_="form-control") }}
-   </div>
-   <div class="form-group">
-       <label for="content">Content</label>
-       {{ form.content(class_="form-control", cols="100", rows="20") }}
-   </div>
-   <div class="form-check">
-       {{ form.is_published(class_="form-check-input") }}
-       <label class="form-check-label" for="is_published">Entry publisked</label>
-   </div>
-   <button type="submit" class="btn btn-primary mt-5">Save</button>
+    <div class="form-group">
+      <label for="title">Title</label>
+      {{ form.title(class_="form-control") }}
+    </div>
+    <div class="form-group">
+      <label for="content">Content</label>
+      {{ form.content(class_="form-control", cols="100", rows="20") }}
+    </div>
+    <div class="form-check">
+      {{ form.is_published(class_="form-check-input") }}
+      <label class="form-check-label" for="is_published">Entry publisked</label>
+    </div>
+    <button type="submit" class="btn btn-primary mt-5">Save</button>
 </form>
 
 {% endblock %}

@@ -37,3 +37,12 @@ def delete_post(post_to_delete):
     message = f'Post {post_to_delete.title} removed succesfully.'
     db.session.commit()
     flash(message)
+    
+    
+def search_posts_by_search_query_and_is_published(search_query, is_puslished):
+    if search_query:
+        return Entry.query.filter(
+            (Entry.is_published == is_puslished) & (Entry.title.contains(search_query))
+        ).order_by(Entry.creation_date.desc())
+    else: 
+        return Entry.query.filter_by(is_published=is_puslished).order_by(Entry.creation_date.desc())

@@ -6,6 +6,10 @@ main {
   margin-top: 36px;
 }
 
+ul {
+  list-style-type: none;
+}
+
 .icon-list {
   padding-left: 0;
   list-style: none;
@@ -30,4 +34,8 @@ main {
 .btn-outline-danger.btn-lg,
 .btn-outline-warning.btn-lg {
   min-height: 50px;
+}
+
+.search_input {
+  max-width: 200px;
 }

@@ -12,6 +12,8 @@ homepage_view     GET        /
 list_drafts       GET        /drafts/                   
 login             GET, POST  /login/                    
 logout            GET, POST  /logout/                   
+search_drafts     GET        /search_drafts/            
+search_posts      GET        /search/                   
 static            GET        /templates/<path:filename> 
 ```
 

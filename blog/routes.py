@@ -1,8 +1,11 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, g
 from blog import app
 from blog.models import Entry
 from blog.forms import EntryForm
-from blog.utils import create_or_edit_post, delete_post
+from blog.utils import (create_or_edit_post, 
+                        delete_post, 
+                        search_posts_by_search_query_and_is_published
+                        )
 from blog.forms import LoginForm
 import functools
 
@@ -20,6 +23,11 @@ def handle_page_not_found(error):
     return redirect(url_for("homepage_view"))
 
 
+@app.context_processor
+def inject_template_name():
+    return {'template_name': g.get('template_name', 'unknown')}
+
+
 @app.route('/')
 def homepage_view():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
@@ -32,14 +40,7 @@ def homepage_view():
 @app.route('/search/')
 def search_posts():
     search_query = request.args.get("q", "")
-            
-    if search_query:
-        posts = Entry.query.filter(
-            (Entry.is_published == True) & (Entry.title.contains(search_query))
-        ).order_by(Entry.creation_date.desc())
-    else: 
-        posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    
+    posts = search_posts_by_search_query_and_is_published(search_query, True)
     return render_template("homepage.html", 
                            all_posts=posts,
                            counter=posts.count(),
@@ -51,8 +52,19 @@ def search_posts():
 def list_drafts():
     drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
-                           drafts=drafts)
-
+                           drafts=drafts,
+                           counter=drafts.count())
+    
+    
+@app.route('/search_drafts/')
+def search_drafts():
+    search_query = request.args.get("q", "")
+    drafts = search_posts_by_search_query_and_is_published(search_query, False)
+    return render_template("drafts.html", 
+                           drafts=drafts,
+                           counter=drafts.count(),
+                           search_query=search_query)
+    
 
 @app.route("/new-post/", methods=["GET", "POST"])
 @login_required
@@ -110,6 +122,7 @@ def login():
             return redirect(next_url or url_for('homepage_view'))
         else:
             errors = form.errors
+            return redirect(url_for("homepage_view"))
     return render_template("login_form.html", 
                            form=form,
                            errors=errors)

@@ -1,6 +1,8 @@
 # Blog.py with simple SQL database
 
-## Temporaru user:
+## [Live Link to Project on Replit](https://6ecd70b3-4f2e-4d0e-98f4-73d36f0c8004-00-3iztk1pxk76j0.spock.replit.dev/)
+
+## Temporary user:
 
 ```shell
 login: admin

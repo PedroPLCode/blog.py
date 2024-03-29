@@ -15,11 +15,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
 
     def validate_username(self, field):
-        if field.data != Config.ADMIN_USERNAME:
-            raise ValidationError("Invalid username")
-        return field.data
+        return True if field.data == Config.ADMIN_USERNAME else False
 
     def validate_password(self, field):
-        if field.data != Config.ADMIN_PASSWORD:
-            raise ValidationError("Invalid password")
-        return field.data
+        return True if field.data == Config.ADMIN_PASSWORD else False

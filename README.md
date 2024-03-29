@@ -1,5 +1,12 @@
 # Blog.py with simple SQL database
 
+## Temporaru user:
+
+```shell
+login: admin
+passwd: admin
+```
+
 ## Endpoints:
 
 ```shell

@@ -114,15 +114,16 @@ def login():
     form = LoginForm()
     errors = None
     next_url = request.args.get('next')
-    if request.method == 'POST':
-        if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
+        if form.validate_username(form.username) and form.validate_password(form.password):
             session['logged_in'] = True
-            session.permanent = True  # Use cookie to store session.
+            session.permanent = True
             flash('You are now logged in.', 'success')
             return redirect(next_url or url_for('homepage_view'))
         else:
             errors = form.errors
-            return redirect(url_for("homepage_view"))
+            flash('Wrong username or password.', 'danger')
+            redirect(url_for("login"))
     return render_template("login_form.html", 
                            form=form,
                            errors=errors)

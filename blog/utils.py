@@ -29,14 +29,14 @@ def create_or_edit_post(form, entry=None):
         db.session.add(new_entry)
         message = f'New post {new_entry.title} added succesfully.'
     db.session.commit()
-    flash(message)
+    flash(message, 'success')
     
     
 def delete_post(post_to_delete):
     db.session.delete(post_to_delete)
     message = f'Post {post_to_delete.title} removed succesfully.'
     db.session.commit()
-    flash(message)
+    flash(message, 'warning')
     
     
 def search_posts_by_search_query_and_is_published(search_query, is_puslished):

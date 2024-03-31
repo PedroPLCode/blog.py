@@ -93,7 +93,7 @@ def edit_entry(entry_id):
             create_or_edit_post(form=form, entry=entry)
             return redirect(url_for("homepage_view"))
         else:
-            errors = form.errors
+            errors = form.errorsy
     return render_template("entry_form.html", 
                            form=form, 
                            entry_id=entry_id,
@@ -104,7 +104,7 @@ def edit_entry(entry_id):
 @login_required
 def delete_entry(entry_id):
     homepage = request.form.get("homepage") == "true"
-    post_to_delete = Entry.query.filter_by(id=entry_id).first_or_404()
+    post_to_delete = Entry.query.filter_by(id=entry_id).first_or_404()        
     delete_post(post_to_delete)
     return redirect(url_for("homepage_view" if homepage else "list_drafts"))
 

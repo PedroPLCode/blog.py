@@ -20,6 +20,7 @@ def login_required(view_func):
 
 @app.errorhandler(404)
 def handle_page_not_found(error):
+    flash(str(error), 'danger')
     return redirect(url_for("homepage_view"))
 
 

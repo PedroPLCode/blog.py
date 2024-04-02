@@ -8,12 +8,12 @@ class Entry(db.Model):
     creation_date = db.Column(db.DateTime, nullable=False, 
                               default=datetime.utcnow)
     is_published= db.Column(db.Boolean, default=False)
-
-    def __str__(self):
-        return (f"<Entry\n"
-                f"id: {self.id}\n"
-                f"title: {self.title}\n"
-                f"content: {self.content}\n"
-                f"creation_date: {self.creation_date}\n"
-                f"is_published: {self.is_published}>"
-                )
+    comments = db.relationship("Comment", backref="entry")
+        
+        
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    creation_date = db.Column(db.DateTime, nullable=False, 
+                                default=datetime.utcnow)
+    entry_id = db.Column(db.Integer, db.ForeignKey('entry.id'))

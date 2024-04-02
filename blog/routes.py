@@ -1,9 +1,10 @@
 from flask import render_template, request, redirect, url_for, session, flash, g
 from blog import app
-from blog.models import Entry
-from blog.forms import EntryForm
+from blog.models import Entry, Comment
+from blog.forms import EntryForm, CommentForm
 from blog.utils import (create_or_edit_post, 
-                        delete_post, 
+                        create_comment,
+                        delete_item, 
                         search_posts_by_search_query_and_is_published
                         )
 from blog.forms import LoginForm
@@ -32,8 +33,12 @@ def inject_template_name():
 @app.route('/')
 def homepage_view():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    all_comments = Comment.query.all()
+    add_comment_form = CommentForm()
     return render_template("homepage.html", 
                            all_posts=all_posts,
+                           all_comments=all_comments,
+                           form=add_comment_form,
                            counter=all_posts.count()
                            )
     
@@ -81,6 +86,22 @@ def create_new_entry():
     return render_template("entry_form.html", 
                            form=form, 
                            errors=errors)
+    
+    
+@app.route("/new-comment/<int:post_id>", methods=["POST"])
+def create_new_comment(post_id):
+    form = CommentForm()
+    if form.validate_on_submit():
+        create_comment(post_id, form=form)
+    return redirect(url_for("homepage_view"))
+
+
+@app.route("/delete-comment/<int:comment_id>", methods=["GET", "POST"])
+@login_required
+def delete_comment(comment_id):
+    comment_to_delete = Comment.query.filter_by(id=comment_id).first_or_404()  
+    delete_item(comment_to_delete)
+    return redirect(url_for("homepage_view"))
 
 
 @app.route("/edit-post/<int:entry_id>", methods=["GET", "POST"])
@@ -106,7 +127,7 @@ def edit_entry(entry_id):
 def delete_entry(entry_id):
     homepage = request.form.get("homepage") == "true"
     post_to_delete = Entry.query.filter_by(id=entry_id).first_or_404()        
-    delete_post(post_to_delete)
+    delete_item(post_to_delete)
     return redirect(url_for("homepage_view" if homepage else "list_drafts"))
 
 

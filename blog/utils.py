@@ -1,7 +1,7 @@
 from flask import flash
 from faker import Faker
 from blog import db
-from blog.models import Entry
+from blog.models import Entry, Comment
 
 # USED ONLY AT THE BEGINING TO GENERATE FIRST ENTRIES.
 def generate_fake_entries(how_many=12):
@@ -32,9 +32,18 @@ def create_or_edit_post(form, entry=None):
     flash(message, 'success')
     
     
-def delete_post(post_to_delete):
-    db.session.delete(post_to_delete)
-    message = f'Post {post_to_delete.title} removed succesfully.'
+def create_comment(post_id, form):
+    new_comment = Comment(content=form.content.data, entry_id=post_id)
+    db.session.add(new_comment)
+    message = f'Comment added succesfully.'
+    db.session.commit()
+    flash(message, 'success')
+    
+    
+def delete_item(item_to_delete):
+    db.session.delete(item_to_delete)
+    title = f'Post {item_to_delete.title}' if hasattr(item_to_delete, 'title') else 'Comment'
+    message = f'{title} removed succesfully.'
     db.session.commit()
     flash(message, 'warning')
     

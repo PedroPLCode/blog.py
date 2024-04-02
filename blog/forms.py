@@ -8,6 +8,10 @@ class EntryForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     content = TextAreaField('Content', validators=[DataRequired()])
     is_published = BooleanField('Is Published?')
+
+    
+class CommentForm(FlaskForm):
+    content = TextAreaField('Content', validators=[DataRequired()])
    
    
 class LoginForm(FlaskForm):

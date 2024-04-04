@@ -33,7 +33,15 @@
         <div class="dropdown-menu">
           <a class="dropdown-item" href="/">All posts</a>
           {% for category in all_categories %}
-          <a class="dropdown-item" href="/filter/?f={{ category.name }}">#{{ category.name }}</a>
+
+          {% set published_entries = [] %}
+          {% for entry in category.entries %}
+            {% if entry.is_published %}
+              {% set published_entries = published_entries.append(entry) %}
+            {% endif %}
+          {% endfor %}
+
+          <a class="dropdown-item" href="/filter/?f={{ category.name }}">#{{ category.name }} ({{ published_entries|length }})</a>
           {% endfor %}
           {% if session.logged_in %}
           <a class="dropdown-item" href="/drafts/">Drafts</a>
@@ -49,12 +57,12 @@
 
   {% if template_name == 'homepage' %}
   <form class="form-inline my-2 my-lg-0 mr-2" action="{{ url_for('search_posts') }}" method="GET">
-    <input class="form-control mr-sm-2 search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="Search posts" aria-label="Search" name="q">
+    <input class="form-control mr-sm-2 search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="Search all posts" aria-label="Search" name="q">
     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
   </form>
   {% elif template_name == 'drafts' %}
   <form class="form-inline my-2 my-lg-0 mr-2" action="{{ url_for('search_drafts') }}" method="GET">
-    <input class="form-control mr-sm-2 search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="Search drafts" aria-label="Search" name="q">
+    <input class="form-control mr-sm-2 search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="Search all drafts" aria-label="Search" name="q">
     <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
   </form>
   {% endif %}

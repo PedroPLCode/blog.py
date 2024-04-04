@@ -5,6 +5,14 @@
 {% block content %}
 
 <div class="d-flex flex-column justify-content-center align-items-center">
+  {% if not filter and not search_query %}
+  <h4>All posts</h4>
+  {% endif %}
+
+  {% if filter %}
+  <h4>Filtered results for: #{{ filter }}</h4>
+  {% endif %}
+
   {% if search_query %}
     <h4>Search results for: {{ search_query }}</h4>
     <h5 class="mt-1 mb-4">Found {{ counter }} posts.</h5>

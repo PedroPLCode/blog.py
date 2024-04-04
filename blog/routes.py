@@ -100,11 +100,13 @@ def list_drafts():
 @app.route('/search_drafts/')
 def search_drafts():
     clear_caterogies_db()
+    all_categories = Category.query.all()
     search_query = request.args.get("q", "")
     drafts = search_posts_by_search_query_and_is_published(search_query, False)
     return render_template("drafts.html", 
                            drafts=drafts,
                            counter=drafts.count(),
+                           all_categories=all_categories,
                            search_query=search_query)
     
 

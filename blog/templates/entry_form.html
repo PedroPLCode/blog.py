@@ -27,10 +27,10 @@
     </div>
     <div class="form-group">
       <label for="category">Category</label>
-      {{ form.category(class_="form-control") }}
+      {{ form.category(class_="form-control", id="category") }}
     </div>
-    <div class="form-group">
-      <label for="customcategory">Custom category</label>
+    <div class="form-group newcategory">
+      <label for="customcategory">New category</label>
       {% set readonly = form.customcategory.render_kw.get('readonly', False) if form.customcategory.render_kw is not none else False %}
       {% set disabled = form.customcategory.render_kw.get('disabled', False) if form.customcategory.render_kw is not none else False %}
       {{ form.customcategory(class_="form-control") }}

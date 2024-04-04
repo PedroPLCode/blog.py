@@ -54,10 +54,12 @@ def search_posts():
     all_categories = Category.query.all()
     search_query = request.args.get("q", "")
     posts = search_posts_by_search_query_and_is_published(search_query, True)
+    add_comment_form = CommentForm()
     return render_template("homepage.html", 
                            all_posts=posts,
                            all_categories=all_categories,
                            counter=posts.count(),
+                           form=add_comment_form,
                            search_query=search_query)
     
     

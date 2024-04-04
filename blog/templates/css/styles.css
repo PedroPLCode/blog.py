@@ -39,3 +39,7 @@ ul {
 .search_input {
   max-width: 200px;
 }
+
+.newcategory {
+  transition: .5s opacity;
+}

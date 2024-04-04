@@ -25,11 +25,22 @@
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="d-flex flex-row">
       <li><a class="navbar-brand" href="/">My blog</a></li>
-      <li><a class="navbar-brand ml-3" href="/">All posts</a></li>
+      <li>
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Posts
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/">All posts</a>
+          {% for category in all_categories %}
+          <a class="dropdown-item" href="/filter/?f={{ category.name }}">{{ category.name }}</a>
+          {% endfor %}
+          {% if session.logged_in %}
+          <a class="dropdown-item" href="/drafts/">Drafts</a>
+          {% endif %}
+        </div>
+      </li>
       <li><a class="navbar-brand ml-3" href="/new-post/">New Entry</a></li>
-      {% if session.logged_in %}
-      <li><a class="navbar-brand ml-3" href="/drafts/">Drafts</a></li>
-      {% endif %}
     </ul>
   </div>
 

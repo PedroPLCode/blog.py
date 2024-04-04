@@ -1,11 +1,13 @@
 from flask import render_template, request, redirect, url_for, session, flash, g
 from blog import app
-from blog.models import Entry, Comment
+from blog.models import Entry, Comment, Category
 from blog.forms import EntryForm, CommentForm
 from blog.utils import (create_or_edit_post, 
                         create_comment,
                         delete_item, 
-                        search_posts_by_search_query_and_is_published
+                        search_posts_by_search_query_and_is_published,
+                        filter_posts_by_category,
+                        clear_caterogies_db,
                         )
 from blog.forms import LoginForm
 import functools
@@ -32,12 +34,15 @@ def inject_template_name():
 
 @app.route('/')
 def homepage_view():
+    clear_caterogies_db()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     all_comments = Comment.query.all()
+    all_categories = Category.query.all()
     add_comment_form = CommentForm()
     return render_template("homepage.html", 
                            all_posts=all_posts,
                            all_comments=all_comments,
+                           all_categories=all_categories,
                            form=add_comment_form,
                            counter=all_posts.count()
                            )
@@ -45,25 +50,54 @@ def homepage_view():
     
 @app.route('/search/')
 def search_posts():
+    clear_caterogies_db()
+    all_categories = Category.query.all()
     search_query = request.args.get("q", "")
     posts = search_posts_by_search_query_and_is_published(search_query, True)
     return render_template("homepage.html", 
                            all_posts=posts,
+                           all_categories=all_categories,
                            counter=posts.count(),
                            search_query=search_query)
+    
+    
+@app.route('/filter/')
+def filter_posts():
+    clear_caterogies_db()
+    filter = request.args.get("f", "")
+    all_categories = Category.query.all()
+    category_names = [category.name for category in all_categories]
+    
+    if not filter or filter not in category_names:
+        flash('Category not found.', 'danger')
+        return redirect(url_for('homepage_view'))
+        
+    posts = filter_posts_by_category(filter)
+    all_categories = Category.query.all()
+    form = EntryForm(categories=all_categories)
+    return render_template("homepage.html", 
+                           all_posts=posts,
+                           all_categories=all_categories,
+                           counter=posts.count(),
+                           filter=filter,
+                           form=form)
     
 
 @app.route('/drafts/')
 @login_required
 def list_drafts():
+    clear_caterogies_db()
+    all_categories = Category.query.all()
     drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
                            drafts=drafts,
+                           all_categories=all_categories,
                            counter=drafts.count())
     
     
 @app.route('/search_drafts/')
 def search_drafts():
+    clear_caterogies_db()
     search_query = request.args.get("q", "")
     drafts = search_posts_by_search_query_and_is_published(search_query, False)
     return render_template("drafts.html", 
@@ -75,10 +109,11 @@ def search_drafts():
 @app.route("/new-post/", methods=["GET", "POST"])
 @login_required
 def create_new_entry():
-    form = EntryForm()
+    all_categories = Category.query.all()
+    form = EntryForm(categories=all_categories)
     errors = None
     if request.method == 'POST':
-        if form.validate_on_submit():
+        if form.validate():
             create_or_edit_post(form=form)
             return redirect(url_for("homepage_view"))
         else:
@@ -107,17 +142,33 @@ def delete_comment(comment_id):
 @app.route("/edit-post/<int:entry_id>", methods=["GET", "POST"])
 @login_required
 def edit_entry(entry_id):
+    all_categories = Category.query.all()
     entry = Entry.query.filter_by(id=entry_id).first_or_404()
-    form = EntryForm(obj=entry)
+    category = next((category for category in all_categories if category.id == entry.category_id), None)
+    form = EntryForm(obj=entry, categories=all_categories, category=category)
     errors = None
+        
     if request.method == 'POST':
-        if form.validate_on_submit():
+        if form.validate():
             create_or_edit_post(form=form, entry=entry)
             return redirect(url_for("homepage_view"))
         else:
-            errors = form.errorsy
+            errors = form.errors
+    
+    if form.category.data == 'new category':
+        form.customcategory.data = '' 
+        form.customcategory.render_kw = {'readonly': False, 'disabled': False}
+       
+    form.title.default = entry.title if entry and entry.title else None
+    form.content.default = entry.content if entry and entry.content else None
+    form.is_published.default = entry.is_published if entry and entry.is_published else None
+    form.category.default = entry.category.name if entry and entry.category else None
+    form.process()
+    
     return render_template("entry_form.html", 
                            form=form, 
+                           all_categories=all_categories,
+                           category=category,
                            entry_id=entry_id,
                            errors=errors)
 

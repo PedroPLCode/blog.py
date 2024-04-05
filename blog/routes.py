@@ -286,9 +286,13 @@ def movie_details(movie_id):
     
 
 @app.route("/favorites/add", methods=['POST'])
-@login_required
 def add_to_favorites():
     referer = request.headers.get('Referer')
+        
+    if not session.get('logged_in'):
+        flash('You must be logged in to add movies to favorites', 'danger')
+        return redirect(referer if referer else url_for('movies_homepage'))
+    
     data = request.form
     movie_id = data.get('movie_id')
     movie_title = data.get('movie_title')
@@ -296,13 +300,13 @@ def add_to_favorites():
         favorites = Favorite.query.all()
         for favorite in favorites:
             if favorite.movie_id == int(movie_id):
-                flash(f'"{movie_title}" already in Favorites!')
+                flash(f'"{movie_title}" already in Favorites!', 'danger')
                 return redirect(referer if referer else url_for('homepage'))
                 
         new_favorite = Favorite(movie_id=movie_id, movie_title=movie_title)
         db.session.add(new_favorite)
         db.session.commit()
-        flash(f'"{movie_title}" saved in Favorites!')
+        flash(f'"{movie_title}" saved in Favorites!', 'success')
         
     return redirect(referer if referer else url_for('movies_homepage'))
 
@@ -320,7 +324,7 @@ def delete_from_favorites():
             if favorite.movie_id  == int(movie_id):
                 db.session.delete(favorite)
                 db.session.commit()
-        flash(f'"{movie_title}" removed from Favorites!')
+        flash(f'"{movie_title}" removed from Favorites!', 'success')
   
     return redirect(referer if referer else url_for('favorites'))
 

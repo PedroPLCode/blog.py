@@ -13,7 +13,10 @@ migrate = Migrate(app, db)
 def make_shell_context():
   return {
       "db": db,
-      "Entry": models.Entry
+      "Favorite": models.Favorite,
+      "Entry": models.Entry,
+      "Comment": models.Comment,
+      "Category": models.Category,
   }
 
 from blog import routes, models

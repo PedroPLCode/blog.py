@@ -43,3 +43,22 @@ ul {
 .newcategory {
   transition: .5s opacity;
 }
+
+svg {
+  transition: .5s all;
+}
+
+.is_favorite {
+  fill: red;
+  transform: scale(2)
+}
+
+.not_favorite {
+  fill: green;
+  transform: scale(1.5)
+}
+
+.not_favorite:hover {
+    fill: red;
+    transform: scale(2)
+  }

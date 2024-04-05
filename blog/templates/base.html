@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
-  <title>My blog</title>
+  <title>Blog and Movies Database</title>
   <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/starter-template/">
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
@@ -24,14 +24,16 @@
 
   <div class="collapse navbar-collapse d-flex flex-row align-items-end justify-content-start mt-3" id="navbarsExampleDefault">
     <ul class="d-flex flex-row align-items-center justify-content-center">
-      <li><a class="navbar-brand" href="/">My blog</a></li>
+      
+      <li><a class="navbar-brand" href="/">Homepage</a></li>
+
       <li>
-      <div class="btn-group">
+      <div class="btn-group mr-2">
         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Posts
+          Blog
         </button>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="/">All posts</a>
+          <a class="dropdown-item" href="/">All posts {% if all_posts_counter > 0 %} ({{ all_posts_counter }}) {% endif %}</a>
           {% for category in all_categories %}
 
           {% set published_entries = [] %}
@@ -44,11 +46,27 @@
           <a class="dropdown-item" href="/filter/?f={{ category.name }}">#{{ category.name }} ({{ published_entries|length }})</a>
           {% endfor %}
           {% if session.logged_in %}
-          <a class="dropdown-item" href="/drafts/">Drafts</a>
+          <a class="dropdown-item" href="/drafts/">Drafts {% if drafts_counter > 0 %} ({{ drafts_counter }}) {% endif %}</a>
           {% endif %}
+          <a class="dropdown-item" href="/new-post/">New Entry</a>
         </div>
+      </div>
       </li>
-      <li><a class="navbar-brand ml-3" href="/new-post/">New Entry</a></li>
+
+      <li>
+        <div class="btn-group">
+          <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Movies
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="/movies/">All movies</a>
+            {% if session.logged_in %}
+            <a class="dropdown-item" href="/favorites/">Favorites {% if favorites_counter() > 0 %} ({{ favorites_counter() }}) {% endif %}</a>
+            {% endif %}
+          </div>
+        </div>
+        </li>
+
     </ul>
   </div>
 

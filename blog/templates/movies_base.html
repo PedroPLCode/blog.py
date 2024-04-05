@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Blog and Movies DataBase</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">        <!-- Bootstrap core JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <!-- Responsive navbar-->
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top d-flex flex-row justify-content-between align-items-center">
+  
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+              aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+                
+                <div class="collapse navbar-collapse d-flex flex-row align-items-end justify-content-start mt-3" id="navbarSupportedContent">                   
+                    
+                    <ul class="d-flex flex-row align-items-center justify-content-center">
+                        <li><a class="navbar-brand" href="/">Homepage</a></li>
+                  
+                        <li>
+                        <div class="btn-group mr-2">
+                          <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Blog
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/">All posts {% if all_posts_counter > 0 %} ({{ all_posts_counter }}) {% endif %}</a>
+                            {% for category in all_categories %}
+                  
+                            {% set published_entries = [] %}
+                            {% for entry in category.entries %}
+                              {% if entry.is_published %}
+                                {% set published_entries = published_entries.append(entry) %}
+                              {% endif %}
+                            {% endfor %}
+                  
+                            <a class="dropdown-item" href="/filter/?f={{ category.name }}">#{{ category.name }} ({{ published_entries|length }})</a>
+                            {% endfor %}
+                            {% if session.logged_in %}
+                            <a class="dropdown-item" href="/drafts/">Drafts {% if drafts_counter > 0 %} ({{ drafts_counter }}) {% endif %}</a>
+                            {% endif %}
+                            <a class="dropdown-item" href="/new-post/">New Entry</a>
+                          </div>
+                        </div>
+                        </li>
+                  
+                        <li>
+                          <div class="btn-group">
+                            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Movies
+                              </button>
+                            <div class="dropdown-menu">
+                              <a class="dropdown-item" href="/movies">All movies</a>
+                              {% if session.logged_in %}
+                              <a class="dropdown-item" href="/favorites">Favorites {% if favorites_counter() > 0 %} ({{ favorites_counter() }}) {% endif %}</a>
+                              {% endif %}
+                            </div>
+                        </div>
+                          </li>
+
+                          <li>
+                            <div class="">
+                            </div>
+                          </li>
+                      </ul>
+                </div>
+
+                <ul class="navbar-nav mr-auto">
+                </ul>
+
+                <form class="form-inline mr-2" action="/search_movies" method="GET">
+                    <input class="form-control mr-sm-2 search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="Search all movies" aria-label="Search all movies" name="q">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+
+                {% if session.logged_in %}
+                <form class="form-inline my-2 my-lg-0" action="{{ url_for('logout') }}" method="POST">
+                  <button class="btn btn-outline-warning my-2 my-sm-0" type="submit">Logout</button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-warning my-2 my-lg-0">Login</a>
+                {% endif %}
+
+        </nav>
+        <!-- Page Content -->
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-info mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+            {% block content %}
+            {% endblock %}
+        </div>
+        <!-- Bootstrap core JS-->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS
+        <script src="js/scripts.js"></script> -->
+        <script type='module' src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </body>
+</html>

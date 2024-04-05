@@ -1,7 +1,7 @@
-from flask import flash, redirect, url_for
+from flask import flash
 from faker import Faker
 from blog import db
-from blog.models import Entry, Comment, Category
+from blog.models import Entry, Comment, Category, Favorite
 
 # USED ONLY AT THE BEGINING TO GENERATE FIRST ENTRIES.
 def generate_fake_entries(how_many=12):
@@ -107,3 +107,17 @@ def clear_caterogies_db():
         if counter == 0:
             db.session.delete(category)
             db.session.commit()
+            
+            
+def check_if_movies_are_in_favorites(movies):
+    favorites = Favorite.query.all()
+    for movie in movies:
+        movie = check_and_mark_if_single_movie_is_in_favorites(movie, favorites)
+    return movies
+
+
+def check_and_mark_if_single_movie_is_in_favorites(movie, favorites):
+    for favorite in favorites:
+        if movie['id'] == favorite.movie_id:
+            movie['is_favorite'] = True
+    return movie

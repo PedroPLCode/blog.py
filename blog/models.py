@@ -24,3 +24,9 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     entries = db.relationship("Entry", backref="category")
+    
+
+class Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column(db.Integer, index=True, unique=True)
+    movie_title = db.Column(db.String(100), index=True)

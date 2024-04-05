@@ -1,0 +1,85 @@
+{% extends "movies_base.html" %}
+
+{% block content %}
+
+<div class="container">
+   <h1 class="my-4">
+       {{ movie.title }}
+   </h1>
+   <div class="row">
+     <div class="col-md-8">
+      {% if image %}
+        <img class="img-fluid" src="{{ tmdb_image_url(image.file_path, "w780") }}">
+      {% else %} 
+        <img class="img-fluid" src="{{ tmdb_image_url(movie.poster_path, "w780") }}">
+      {% endif %}
+     </div>
+     <div class="col-md-4">
+         <h3>{{ movie.tagline }}</h3>
+       <p>
+           {{ movie.overview}}
+       </p>
+       <dl>
+           <dt>Budget</dt>
+           <dd>{{ movie.budget }}</dd>
+           <dt>Genre</dt>
+           <dd>{% for genre in movie.genres %}{{ genre.name }}, {% endfor %}</dd>
+         </dl>
+
+         {% if session.logged_in %}
+          
+          {% if not movie.is_favorite %}
+          <form method="POST" action="{{ url_for('add_to_favorites') }}" class="d-inline-flex">
+              <input type="hidden" name="movie_title" value="{{ movie.title }}">
+              <input type="hidden" name="movie_id" value="{{ movie.id }}">
+              <button type="submit" class="btn btn-default">
+                <svg class="bi bi-star {{ 'is_favorite' if movie.is_favorite else 'not_favorite' }}" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.523-3.356c.329-.314.158-.888-.283-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767l-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288l1.847-3.658 1.846 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.564.564 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z"/>
+                </svg>
+              </button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('delete_from_favorites') }}" class="d-inline-flex">
+            <input type="hidden" name="movie_title" value="{{ movie.title }}">
+            <input type="hidden" name="movie_id" value="{{ movie.id }}">
+            <button type="submit" class="btn btn-default">
+              <svg class="bi bi-star" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 12L14 16M14 12L10 16M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </form>
+          {% endif %}
+
+        {% else %}
+        <form method="POST" action="{{ url_for('add_to_favorites') }}" class="d-inline-flex">
+          <input type="hidden" name="movie_title" value="{{ movie.title }}">
+          <input type="hidden" name="movie_id" value="{{ movie.id }}">
+          <button type="submit" class="btn btn-default">
+            <svg class="bi bi-star not_favorite" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.523-3.356c.329-.314.158-.888-.283-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767l-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288l1.847-3.658 1.846 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.564.564 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z"/>
+            </svg>
+          </button>
+        </form>
+        {% endif %}
+
+      </div>
+   </div>
+    <h3 class="my-4">Cast</h3>
+   <div class="row">
+        {% for actor in cast[:8] %}
+            {% if actor.profile_path %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="#">
+                        <figure class="figure d-flex flex-column justify-content-center align-items-center">
+                            <img src="{{ tmdb_image_url(actor.profile_path, "w185") }}" class="figure-img img-fluid rounded" alt="actor">
+                            <figcaption class="figure-caption">{{ actor.character }}</figcaption>
+                            <p>{{ actor.name }}</p>
+                        </figure>
+                    </a>
+                </div>
+            {% endif %}
+        {% endfor %}
+   </div>
+ </div>
+
+{% endblock %}

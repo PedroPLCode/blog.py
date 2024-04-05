@@ -25,7 +25,7 @@ def test_get_movies_list(monkeypatch):
     requests_mock = Mock()
     response = requests_mock.return_value
     response.json.return_value = mock_movies_list
-    monkeypatch.setattr("tmdb_client.requests.get", requests_mock)
+    monkeypatch.setattr("blog.tmdb_client.requests.get", requests_mock)
     movies_list = tmdb_client.call_tmdb_api("movie/")
     assert movies_list == mock_movies_list
     
@@ -36,7 +36,7 @@ def test_get_single_movie(monkeypatch):
     requests_mock = Mock()
     response = requests_mock.return_value
     response.json.return_value = mock_movie_data
-    monkeypatch.setattr("tmdb_client.requests.get", requests_mock)
+    monkeypatch.setattr("blog.tmdb_client.requests.get", requests_mock)
     movie = tmdb_client.get_single_movie_details(expected_movie_id)
     assert movie['id'] == expected_movie_id
     assert movie['title'] == 'Test Movie'
@@ -57,7 +57,7 @@ def test_get_movie_images(monkeypatch):
     requests_mock = Mock()
     response = requests_mock.return_value
     response.json.return_value = mock_images_data
-    monkeypatch.setattr("tmdb_client.requests.get", requests_mock)
+    monkeypatch.setattr("blog.tmdb_client.requests.get", requests_mock)
     images = tmdb_client.get_single_movie_images(expected_movie_id)
     assert len(images['backdrops']) == 2
     assert len(images['posters']) == 2
@@ -74,7 +74,7 @@ def test_get_single_movie_cast(monkeypatch):
     requests_mock = Mock()
     response = requests_mock.return_value
     response.json.return_value = mock_cast_data
-    monkeypatch.setattr("tmdb_client.requests.get", requests_mock)
+    monkeypatch.setattr("blog.tmdb_client.requests.get", requests_mock)
     cast = tmdb_client.get_single_movie_cast(expected_movie_id)
     assert len(cast) == 2
     assert cast[0]['name'] == 'jas Fasola'

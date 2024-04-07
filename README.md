@@ -1,6 +1,6 @@
 # Blog.py with simple SQL database
 
-## [Live Link to Project on Replit](https://6ecd70b3-4f2e-4d0e-98f4-73d36f0c8004-00-3iztk1pxk76j0.spock.replit.dev/)
+## [Live Link to Project on Replit](https://16d1ac62-a290-4617-a78f-abdb380673a2-00-m2q2tbltvitv.janeway.replit.dev/)
 
 ## Endpoints:
 

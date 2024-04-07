@@ -9,3 +9,5 @@ class Config:
             'sqlite:///' + os.path.join(BASE_DIR, 'blog.db')
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    admin_id = 999

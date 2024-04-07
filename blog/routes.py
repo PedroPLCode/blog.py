@@ -7,6 +7,7 @@ from blog.utils import *
 import functools
 import random
 from blog import tmdb_client
+from config import Config
 
 app.secret_key = b'my-secret-key'
 LIST_TYPES = ['top_rated', 'upcoming', 'popular', 'now_playing']
@@ -42,6 +43,7 @@ def homepage_view():
     all_categories = Category.query.all()
     add_comment_form = CommentForm()
     return render_template("homepage.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            all_posts=all_posts,
                            all_comments=all_comments,
                            all_categories=all_categories,
@@ -59,9 +61,10 @@ def search_posts():
     drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     search_query = request.args.get("q", "")
-    posts = search_posts_by_search_query_and_is_published(search_query, True)
+    posts = search_posts_by_search_query(search_query=search_query)
     add_comment_form = CommentForm()
     return render_template("homepage.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            all_posts=posts,
                            all_categories=all_categories,
                            counter=posts.count(),
@@ -90,6 +93,7 @@ def filter_posts():
     all_categories = Category.query.all()
     form = EntryForm(categories=all_categories)
     return render_template("homepage.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            all_posts=posts,
                            all_categories=all_categories,
                            counter=posts.count(),
@@ -109,6 +113,7 @@ def list_drafts():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            drafts=drafts,
                            all_categories=all_categories,
                            all_posts_counter=all_posts.count(),
@@ -122,9 +127,12 @@ def search_drafts():
     all_categories = Category.query.all()
     search_query = request.args.get("q", "")
     user_id = session.get('user_id')
-    drafts = search_posts_by_search_query_and_is_published(user_id, search_query, False)
+    drafts = search_drafts_by_search_query_and_user_id(search_query=search_query, 
+                                                           user_id=user_id,
+                                                           )
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            drafts=drafts,
                            counter=drafts.count(),
                            all_posts_counter=all_posts.count(),
@@ -150,6 +158,7 @@ def create_new_entry():
         else:
             errors = form.errors
     return render_template("entry_form.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            form=form, 
                            all_categories=all_categories,
                            counter=all_posts.count(),
@@ -190,7 +199,7 @@ def edit_entry(entry_id):
         
     if request.method == 'POST':
         if form.validate():
-            if entry.user_id == user_id:
+            if entry.user_id == user_id or user_id == Config.admin_id:
                 create_or_edit_post(form=form, user_id=user_id, entry=entry)
             else:
                 flash('Error. Wrong user_id', 'danger')
@@ -209,6 +218,7 @@ def edit_entry(entry_id):
     form.process()
     
     return render_template("entry_form.html", 
+                           user = User.query.filter(User.id == user_id).first(),
                            form=form, 
                            all_categories=all_categories,
                            category=category,
@@ -244,6 +254,7 @@ def movies_homepage():
     movies = check_if_movies_are_in_favorites(user_id, movies)
     
     return render_template("movies.html",
+                           user = User.query.filter(User.id == user_id).first(),
                            movies=movies,
                            current_list=selected_list,
                            list_types=LIST_TYPES,
@@ -269,6 +280,7 @@ def search():
     movies = check_if_movies_are_in_favorites(user_id, movies)
     
     return render_template("search_movies.html",
+                           user = User.query.filter(User.id == user_id).first(),
                            movies=movies,
                            movies_counter=len(movies),
                            all_categories=all_categories,
@@ -292,6 +304,7 @@ def movie_details(movie_id):
     movie = check_and_mark_if_single_movie_is_in_favorites(details, favorites)
     
     return render_template("movie_details.html",
+                           user = User.query.filter(User.id == user_id).first(),
                            movie=movie,
                            cast=cast,
                            image=random_image,
@@ -361,6 +374,7 @@ def favorites():
     for favorite in favorites:
         movies.append(tmdb_client.get_single_movie_details(favorite.movie_id))
     return render_template("favorites.html",
+                            user = User.query.filter(User.id == user_id).first(),
                             movies=movies,
                             all_categories=all_categories,
                             all_posts_counter=all_posts.count(),

@@ -2,6 +2,7 @@ from flask import flash
 from faker import Faker
 from blog import db
 from blog.models import Entry, Comment, Category, Favorite
+from config import Config
 
 # USED ONLY AT THE BEGINING TO GENERATE FIRST ENTRIES.
 def generate_fake_entries(how_many=12):
@@ -70,7 +71,7 @@ def create_comment(post_id, form, user_id):
     
     
 def delete_item(user_id, item_to_delete):
-    if user_id == item_to_delete.user_id:
+    if user_id == item_to_delete.user_id or user_id == Config.admin_id:
         db.session.delete(item_to_delete)
         title = f'Post {item_to_delete.title}' if hasattr(item_to_delete, 'title') else 'Comment'
         message = f'{title} removed succesfully.'
@@ -80,13 +81,22 @@ def delete_item(user_id, item_to_delete):
         flash('Error. Wrong user_id', 'warning')
     
     
-def search_posts_by_search_query_and_is_published(user_id, search_query, is_published):
+def search_posts_by_search_query(search_query):
     if search_query:
         return Entry.query.filter(
-            (Entry.is_published == is_published) & (Entry.title.contains(search_query) & (Entry.user_id == user_id))
+            (Entry.is_published == True) & (Entry.title.contains(search_query))
         ).order_by(Entry.creation_date.desc())
     else: 
-        return Entry.query.filter_by(is_published=is_published & (Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
+        return Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    
+
+def search_drafts_by_search_query_and_user_id(search_query, user_id):
+    if search_query:
+        return Entry.query.filter(
+            (Entry.is_published == False) & (Entry.title.contains(search_query) & (Entry.user_id == user_id))
+        ).order_by(Entry.creation_date.desc())
+    else: 
+        return Entry.query.filter_by(is_published=False & (Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     
     
 def filter_posts_by_category(category_name=None, is_published=True):

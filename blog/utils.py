@@ -23,7 +23,7 @@ def add_new_category(name):
     return category
 
 
-def create_or_edit_post(form, entry=None):
+def create_or_edit_post(form, user_id, entry=None):
     category_name = form.category.data
     category = Category.query.filter_by(name=category_name).first()
     
@@ -47,7 +47,8 @@ def create_or_edit_post(form, entry=None):
         new_entry = Entry(
             title=form.title.data,
             content=form.content.data,
-            is_published=form.is_published.data
+            is_published=form.is_published.data,
+            user_id=user_id,
         )
         new_entry.category = category
         db.session.add(new_entry)
@@ -60,29 +61,32 @@ def create_or_edit_post(form, entry=None):
         flash(f'Error: {e}', 'danger')
 
     
-def create_comment(post_id, form):
-    new_comment = Comment(content=form.content.data, entry_id=post_id)
+def create_comment(post_id, form, user_id):
+    new_comment = Comment(content=form.content.data, entry_id=post_id, user_id=user_id)
     db.session.add(new_comment)
     message = f'Comment added succesfully.'
     db.session.commit()
     flash(message, 'success')
     
     
-def delete_item(item_to_delete):
-    db.session.delete(item_to_delete)
-    title = f'Post {item_to_delete.title}' if hasattr(item_to_delete, 'title') else 'Comment'
-    message = f'{title} removed succesfully.'
-    db.session.commit()
-    flash(message, 'warning')
+def delete_item(user_id, item_to_delete):
+    if user_id == item_to_delete.user_id:
+        db.session.delete(item_to_delete)
+        title = f'Post {item_to_delete.title}' if hasattr(item_to_delete, 'title') else 'Comment'
+        message = f'{title} removed succesfully.'
+        db.session.commit()
+        flash(message, 'warning')
+    else: 
+        flash('Error. Wrong user_id', 'warning')
     
     
-def search_posts_by_search_query_and_is_published(search_query, is_published):
+def search_posts_by_search_query_and_is_published(user_id, search_query, is_published):
     if search_query:
         return Entry.query.filter(
-            (Entry.is_published == is_published) & (Entry.title.contains(search_query))
+            (Entry.is_published == is_published) & (Entry.title.contains(search_query) & (Entry.user_id == user_id))
         ).order_by(Entry.creation_date.desc())
     else: 
-        return Entry.query.filter_by(is_published=is_published).order_by(Entry.creation_date.desc())
+        return Entry.query.filter_by(is_published=is_published & (Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     
     
 def filter_posts_by_category(category_name=None, is_published=True):
@@ -109,8 +113,8 @@ def clear_caterogies_db():
             db.session.commit()
             
             
-def check_if_movies_are_in_favorites(movies):
-    favorites = Favorite.query.all()
+def check_if_movies_are_in_favorites(user_id, movies):
+    favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
     for movie in movies:
         movie = check_and_mark_if_single_movie_is_in_favorites(movie, favorites)
     return movies

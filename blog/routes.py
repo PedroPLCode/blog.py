@@ -1,9 +1,9 @@
 from flask import render_template, request, redirect, url_for, session, flash, g
+from sqlalchemy import and_
 from blog import app
-from blog.models import Entry, Comment, Category, Favorite
-from blog.forms import EntryForm, CommentForm
+from blog.models import Entry, Comment, Category, Favorite, User
+from blog.forms import EntryForm, CommentForm, LoginForm, CreateUser
 from blog.utils import *
-from blog.forms import LoginForm
 import functools
 import random
 from blog import tmdb_client
@@ -35,8 +35,9 @@ def inject_template_name():
 @app.route('/')
 def homepage_view():
     clear_caterogies_db()
+    user_id = session.get('user_id')
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_comments = Comment.query.all()
     all_categories = Category.query.all()
     add_comment_form = CommentForm()
@@ -53,8 +54,9 @@ def homepage_view():
 @app.route('/search/')
 def search_posts():
     clear_caterogies_db()
+    user_id = session.get('user_id')
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     search_query = request.args.get("q", "")
     posts = search_posts_by_search_query_and_is_published(search_query, True)
@@ -73,12 +75,13 @@ def search_posts():
 @app.route('/filter/')
 def filter_posts():
     clear_caterogies_db()
-    filter = request.args.get("f", "")
+    user_id = session.get('user_id')
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     category_names = [category.name for category in all_categories]
-    
+    filter = request.args.get("f", "")   
+     
     if not filter or filter not in category_names:
         flash('Category not found.', 'danger')
         return redirect(url_for('homepage_view'))
@@ -101,9 +104,10 @@ def filter_posts():
 @login_required
 def list_drafts():
     clear_caterogies_db()
+    user_id = session.get('user_id')
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
                            drafts=drafts,
                            all_categories=all_categories,
@@ -117,7 +121,8 @@ def search_drafts():
     clear_caterogies_db()
     all_categories = Category.query.all()
     search_query = request.args.get("q", "")
-    drafts = search_posts_by_search_query_and_is_published(search_query, False)
+    user_id = session.get('user_id')
+    drafts = search_posts_by_search_query_and_is_published(user_id, search_query, False)
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     return render_template("drafts.html", 
                            drafts=drafts,
@@ -132,14 +137,15 @@ def search_drafts():
 @app.route("/new-post/", methods=["GET", "POST"])
 @login_required
 def create_new_entry():
+    user_id = session.get('user_id')
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     form = EntryForm(categories=all_categories)
     errors = None
     if request.method == 'POST':
         if form.validate():
-            create_or_edit_post(form=form)
+            create_or_edit_post(form=form, user_id=user_id)
             return redirect(url_for("homepage_view"))
         else:
             errors = form.errors
@@ -155,24 +161,27 @@ def create_new_entry():
 @app.route("/new-comment/<int:post_id>", methods=["POST"])
 def create_new_comment(post_id):
     form = CommentForm()
+    user_id = session.get('user_id')
     if form.validate_on_submit():
-        create_comment(post_id, form=form)
+        create_comment(post_id, form=form, user_id=user_id)
     return redirect(url_for("homepage_view"))
 
 
 @app.route("/delete-comment/<int:comment_id>", methods=["GET", "POST"])
 @login_required
 def delete_comment(comment_id):
+    user_id = session.get('user_id')
     comment_to_delete = Comment.query.filter_by(id=comment_id).first_or_404()  
-    delete_item(comment_to_delete)
+    delete_item(user_id, comment_to_delete)
     return redirect(url_for("homepage_view"))
 
 
 @app.route("/edit-post/<int:entry_id>", methods=["GET", "POST"])
 @login_required
-def edit_entry(entry_id):
+def edit_entry(entry_id):    
+    user_id = session.get('user_id')
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     entry = Entry.query.filter_by(id=entry_id).first_or_404()
     category = next((category for category in all_categories if category.id == entry.category_id), None)
@@ -181,8 +190,11 @@ def edit_entry(entry_id):
         
     if request.method == 'POST':
         if form.validate():
-            create_or_edit_post(form=form, entry=entry)
-            return redirect(url_for("homepage_view"))
+            if entry.user_id == user_id:
+                create_or_edit_post(form=form, user_id=user_id, entry=entry)
+            else:
+                flash('Error. Wrong user_id', 'danger')
+            return redirect(url_for("homepage_view"))    
         else:
             errors = form.errors
     
@@ -209,16 +221,18 @@ def edit_entry(entry_id):
 @app.route("/delete-post/<int:entry_id>", methods=["POST"])
 @login_required
 def delete_entry(entry_id):
+    user_id = session.get('user_id')
     homepage = request.form.get("homepage") == "true"
     post_to_delete = Entry.query.filter_by(id=entry_id).first_or_404()        
-    delete_item(post_to_delete)
+    delete_item(user_id, post_to_delete)
     return redirect(url_for("homepage_view" if homepage else "list_drafts"))
 
 
 @app.route('/movies/')
 def movies_homepage():
+    user_id = session.get('user_id')
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     
@@ -227,7 +241,7 @@ def movies_homepage():
         selected_list = "popular"
         
     movies = tmdb_client.prepare_movies_list(how_many=8, list_type=selected_list)
-    movies = check_if_movies_are_in_favorites(movies)
+    movies = check_if_movies_are_in_favorites(user_id, movies)
     
     return render_template("movies.html",
                            movies=movies,
@@ -242,8 +256,9 @@ def movies_homepage():
     
 @app.route('/search_movies')
 def search():
+    user_id = session.get('user_id')
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     
     search_query = request.args.get("q", "")
@@ -251,7 +266,7 @@ def search():
         movies = tmdb_client.get_movies_by_search_query(search_query)
     else: 
         movies = []
-    movies = check_if_movies_are_in_favorites(movies)
+    movies = check_if_movies_are_in_favorites(user_id, movies)
     
     return render_template("search_movies.html",
                            movies=movies,
@@ -265,9 +280,10 @@ def search():
 
 @app.route("/movie/<movie_id>")
 def movie_details(movie_id):
+    user_id = session.get('user_id')
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     details = tmdb_client.get_single_movie_details(movie_id)
     cast = tmdb_client.get_single_movie_cast(movie_id)
     movie_images = tmdb_client.get_single_movie_images(movie_id)
@@ -293,17 +309,19 @@ def add_to_favorites():
         flash('You must be logged in to add movies to favorites', 'danger')
         return redirect(referer if referer else url_for('movies_homepage'))
     
+    user_id = session.get('user_id')
     data = request.form
     movie_id = data.get('movie_id')
     movie_title = data.get('movie_title')
     if movie_id and movie_title:
-        favorites = Favorite.query.all()
+        favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
+
         for favorite in favorites:
             if favorite.movie_id == int(movie_id):
                 flash(f'"{movie_title}" already in Favorites!', 'danger')
                 return redirect(referer if referer else url_for('homepage'))
                 
-        new_favorite = Favorite(movie_id=movie_id, movie_title=movie_title)
+        new_favorite = Favorite(movie_id=movie_id, movie_title=movie_title, user_id=user_id)
         db.session.add(new_favorite)
         db.session.commit()
         flash(f'"{movie_title}" saved in Favorites!', 'success')
@@ -314,12 +332,13 @@ def add_to_favorites():
 @app.route("/favorites/delete", methods=['POST'])
 @login_required
 def delete_from_favorites():
-    referer = request.headers.get('Referer')            
+    referer = request.headers.get('Referer')   
+    user_id = session.get('user_id')         
     data = request.form
     movie_id = data.get('movie_id')
     movie_title = data.get('movie_title')
     if movie_id and movie_title:
-        favorites = Favorite.query.all()
+        favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
         for favorite in favorites:
             if favorite.movie_id  == int(movie_id):
                 db.session.delete(favorite)
@@ -332,10 +351,12 @@ def delete_from_favorites():
 @app.route('/favorites/')
 @login_required
 def favorites():
+    user_id = session.get('user_id')
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
-    favorites = Favorite.query.all()
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
+    favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     movies = []
     for favorite in favorites:
         movies.append(tmdb_client.get_single_movie_details(favorite.movie_id))
@@ -345,7 +366,7 @@ def favorites():
                             all_posts_counter=all_posts.count(),
                             drafts_counter=drafts.count(),
                             )
-    
+
 
 @app.route("/login/", methods=['GET', 'POST'])
 def login():
@@ -355,9 +376,15 @@ def login():
     form = LoginForm()
     errors = None
     next_url = request.args.get('next')
+    
     if request.method == 'POST' and form.validate_on_submit():
-        if form.validate_username(form.username) and form.validate_password(form.password):
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(name = username).first()
+        
+        if user and user.verify_password(password):
             session['logged_in'] = True
+            session['user_id'] = user.id
             session.permanent = True
             flash('You are now logged in.', 'success')
             return redirect(next_url or url_for('homepage_view'))
@@ -365,7 +392,45 @@ def login():
             errors = form.errors
             flash('Wrong username or password.', 'danger')
             redirect(url_for("login"))
+            
     return render_template("login_form.html", 
+                           form=form,
+                           all_categories=all_categories,
+                           all_posts_counter=all_posts.count(),
+                           drafts_counter=drafts.count(),
+                           errors=errors)
+
+
+@app.route("/create_user/", methods=['GET', 'POST'])
+def create_user():
+    all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    all_categories = Category.query.all()
+    form = CreateUser()
+    errors = None
+    next_url = request.args.get('next')
+    
+    if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        confirm_password = form.confirm_password.data
+        
+        if username:
+            if password == confirm_password:
+                new_user = User(name=username, password=password)
+                db.session.add(new_user)
+                db.session.commit()
+                flash(f'New user {username} created succesfully.', 'success')
+                return redirect(next_url or url_for('homepage_view'))
+            else:
+                flash('Error. Password not match.', 'danger')
+                redirect(url_for("create_user"))
+        else:
+            errors = form.errors
+            flash('Error. Wrong username or password.', 'danger')
+            redirect(url_for("create_user"))
+            
+    return render_template("create_user.html", 
                            form=form,
                            all_categories=all_categories,
                            all_posts_counter=all_posts.count(),
@@ -398,7 +463,8 @@ def utility_processor():
 @app.context_processor
 def utility_processor():
     def favorites_counter():
-        favorites = Favorite.query.all()
+        user_id = session.get('user_id')
+        favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
         return len(favorites)
     return {"favorites_counter": favorites_counter}
 

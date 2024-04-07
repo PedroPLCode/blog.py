@@ -2,8 +2,6 @@ from flask import flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, BooleanField, PasswordField, SelectField
 from wtforms.validators import DataRequired, Optional
-from werkzeug.routing import ValidationError
-from config import Config
 
 class EntryForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
@@ -52,14 +50,14 @@ class EntryForm(FlaskForm):
     
 class CommentForm(FlaskForm):
     content = TextAreaField('Content', validators=[DataRequired()])
+    
+    
+class CreateUser(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired()])
    
    
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-
-    def validate_username(self, field):
-        return True if field.data == Config.ADMIN_USERNAME else False
-
-    def validate_password(self, field):
-        return True if field.data == Config.ADMIN_PASSWORD else False

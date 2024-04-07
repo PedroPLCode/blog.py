@@ -3,10 +3,10 @@
 {% block content %}
 
 <h3>
-  Log in
+  Create New User
 </h3>
 
-<a href="/create_user/">or create New User</a>
+<a href="/login/">or Login if already have User and Password</a>
 
 {% if errors %}
   {{ errors.username }}
@@ -14,7 +14,7 @@
 <form action="" method="POST">
   {{form.hidden_tag()}}
   <div class="form-group">
-    <label for="title">Login</label>
+    <label for="title">New User Login</label>
     {% if errors and errors.username %}
       {{ form.username(class_="form-control is-invalid") }}
     {% else %}
@@ -23,7 +23,7 @@
     <div class="invalid-feedback">{{ errors.username|join(' ') }}</div>
   </div>
   <div class="form-group">
-    <label for="body">Hasło</label>
+    <label for="body">Password</label>
     {% if errors and errors.password %}
       {{ form.password(class_="form-control is-invalid") }}
     {% else %}
@@ -31,7 +31,16 @@
     {% endif %}
     <div class="invalid-feedback">{{ errors.password|join(' ') }}</div>
   </div>
-  <button type="submit" class="btn btn-primary mt-5">Login</button>
+  <div class="form-group">
+    <label for="body">Confirm Password</label>
+    {% if errors and errors.password %}
+      {{ form.confirm_password(class_="form-control is-invalid") }}
+    {% else %}
+      {{ form.confirm_password(class_="form-control") }}
+    {% endif %}
+    <div class="invalid-feedback">{{ errors.confirm_password|join(' ') }}</div>
+  </div>
+  <button type="submit" class="btn btn-primary mt-5">Create</button>
 </form>
 
 {% endblock %}

@@ -474,7 +474,7 @@ def logout():
 @app.route("/delete_user/", methods=['GET', 'POST'])
 def delete_user():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
-    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
     form = LoginForm()
     errors = None

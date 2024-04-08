@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash, g
 from sqlalchemy import and_
 from blog import app
 from blog.models import Entry, Comment, Category, Favorite, User
-from blog.forms import EntryForm, CommentForm, LoginForm, CreateUser
+from blog.forms import EntryForm, CommentForm, LoginForm, CreateUser, DeleteUser
 from blog.utils import *
 import functools
 import random
@@ -458,6 +458,43 @@ def logout():
         session.clear()
         flash('You are now logged out.', 'success')
     return redirect(url_for('homepage_view'))
+
+
+@app.route("/user/", methods=['GET', 'POST'])
+def user():
+    all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
+    all_categories = Category.query.all()
+    form = DeleteUser()
+    errors = None
+    next_url = request.args.get('next')
+    user_id = session.get('user_id')
+    user = User.query.filter_by(id = user_id).first()
+    
+    if request.method == 'POST' and form.validate_on_submit():
+        password = form.password.data
+
+        if password and user.verify_password(password):
+            favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
+            for favorite in favorites:
+                db.session.delete(favorite)
+            db.session.delete(user)
+            db.session.commit()
+            session.clear()
+            flash(f'User {user.name} and favorites deleted.', 'danger')
+            return redirect(next_url or url_for('create_user'))
+        else:
+            errors = form.errors
+            flash('Wrong password.', 'danger')
+            redirect(url_for("user"))
+            
+    return render_template("user.html", 
+                           user=user,
+                           form=form,
+                           all_categories=all_categories,
+                           all_posts_counter=all_posts.count(),
+                           drafts_counter=drafts.count(),
+                           errors=errors)
 
 
 @app.context_processor

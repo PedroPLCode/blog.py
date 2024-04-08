@@ -10,4 +10,4 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    admin_id = 999
+    admin_id = 1

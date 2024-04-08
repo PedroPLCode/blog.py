@@ -7,17 +7,17 @@
 <div class="d-flex flex-column justify-content-center align-items-center">
   {% if not filter and not search_query %}
   <h4>All posts</h4>
+  <h5 class="mt-1 mb-4">{{ all_posts_counter }} posts to show.</h5>
   {% endif %}
 
   {% if filter %}
   <h4>Filtered results for: #{{ filter }}</h4>
+  <h5 class="mt-1 mb-4">{{ counter }} posts to show.</h5>
   {% endif %}
 
   {% if search_query %}
     <h4>Search results for: {{ search_query }}</h4>
     <h5 class="mt-1 mb-4">Found {{ counter }} posts.</h5>
-  {% else %}
-    <h5 class="mt-1 mb-4">{{ all_posts_counter }} posts to show.</h5>
   {% endif %}
 </div>
 

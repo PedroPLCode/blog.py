@@ -61,7 +61,3 @@ class CreateUser(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    
-    
-class DeleteUser(FlaskForm):
-    password = PasswordField('Password', validators=[DataRequired()])

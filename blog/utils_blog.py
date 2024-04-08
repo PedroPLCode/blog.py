@@ -1,21 +1,7 @@
 from flask import flash
-from faker import Faker
 from blog import db
-from blog.models import Entry, Comment, Category, Favorite
+from blog.models import Entry, Comment, Category
 from config import Config
-
-# USED ONLY AT THE BEGINING TO GENERATE FIRST ENTRIES.
-def generate_fake_entries(how_many=12):
-    fake = Faker()
-    for i in range(how_many):
-        new_fake_post = Entry(
-            title=fake.sentence(),
-            content='\n'.join(fake.paragraphs(15)),
-            is_published=True
-        )
-        db.session.add(new_fake_post)
-    db.session.commit()
-    
     
 def add_new_category(name):
     category = Category(name=name)
@@ -74,11 +60,12 @@ def delete_item(user_id, item_to_delete):
     if user_id == item_to_delete.user_id or user_id == Config.admin_id:
         db.session.delete(item_to_delete)
         title = f'Post {item_to_delete.title}' if hasattr(item_to_delete, 'title') else 'Comment'
-        message = f'{title} removed succesfully.'
+        message = f'{title} removed successfully.'
         db.session.commit()
         flash(message, 'warning')
-    else: 
+    else:
         flash('Error. Wrong user_id', 'warning')
+
     
     
 def search_posts_by_search_query(search_query):
@@ -87,32 +74,43 @@ def search_posts_by_search_query(search_query):
             (Entry.is_published == True) & (Entry.title.contains(search_query))
         ).order_by(Entry.creation_date.desc())
     else: 
-        return Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+        return Entry.query.filter_by(
+            is_published=True
+            ).order_by(Entry.creation_date.desc())
     
 
 def search_drafts_by_search_query_and_user_id(search_query, user_id):
     if search_query:
         return Entry.query.filter(
-            (Entry.is_published == False) & (Entry.title.contains(search_query) & (Entry.user_id == user_id))
+            (Entry.is_published == False) & 
+            (Entry.title.contains(search_query)) & 
+            (Entry.user_id == user_id)
         ).order_by(Entry.creation_date.desc())
     else: 
-        return Entry.query.filter_by(is_published=False & (Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
+        return Entry.query.filter(
+            (Entry.is_published == False) & 
+            (Entry.user_id == user_id)
+        ).order_by(Entry.creation_date.desc())
+
     
     
 def filter_posts_by_category(category_name=None, is_published=True):
     if category_name:
         category_filter = Category.query.filter_by(name=category_name).first()
         return Entry.query.filter(
-            (Entry.is_published == is_published) & (Entry.category_id == category_filter.id)
+            (Entry.is_published == is_published) &
+            (Entry.category_id == category_filter.id)
         ).order_by(Entry.creation_date.desc())
     else:
-        return Entry.query.filter_by(is_published=is_published).order_by(Entry.creation_date.desc())
+        return Entry.query.filter_by(
+            is_published=is_published
+        ).order_by(Entry.creation_date.desc())
+
     
     
 def clear_caterogies_db():
     all_entries = Entry.query.all()
     all_categories = Category.query.all()
-    
     for category in all_categories:
         counter = 0
         for entry in all_entries:
@@ -121,17 +119,3 @@ def clear_caterogies_db():
         if counter == 0:
             db.session.delete(category)
             db.session.commit()
-            
-            
-def check_if_movies_are_in_favorites(user_id, movies):
-    favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
-    for movie in movies:
-        movie = check_and_mark_if_single_movie_is_in_favorites(movie, favorites)
-    return movies
-
-
-def check_and_mark_if_single_movie_is_in_favorites(movie, favorites):
-    for favorite in favorites:
-        if movie['id'] == favorite.movie_id:
-            movie['is_favorite'] = True
-    return movie

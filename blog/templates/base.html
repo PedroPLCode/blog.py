@@ -20,7 +20,7 @@
   <div class="collapse navbar-collapse d-flex flex-row align-items-end justify-content-start mt-3" id="navbarsExampleDefault">
     <ul class="d-flex flex-row align-items-center justify-content-center">
       
-      <li><a class="navbar-brand" href="{{ '/user/' if user and user.name else '/' }}">Welcome {{ user.name if user and user.name else 'Guest' }}</a></li>
+      <li><a class="navbar-brand" href="{{ '/delete_user/' if user and user.name else '/' }}">Welcome <strong>{{ user.name if user and user.name else 'Guest' }}</strong></a></li>
 
       <li>
       <div class="btn-group mr-2">

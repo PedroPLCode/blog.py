@@ -2,8 +2,9 @@ from flask import render_template, request, redirect, url_for, session, flash, g
 from sqlalchemy import and_
 from blog import app
 from blog.models import Entry, Comment, Category, Favorite, User
-from blog.forms import EntryForm, CommentForm, LoginForm, CreateUser, DeleteUser
-from blog.utils import *
+from blog.forms import EntryForm, CommentForm, LoginForm, CreateUser
+from blog.utils_blog import *
+from blog.utils_movies import *
 import functools
 import random
 from blog import tmdb_client
@@ -42,6 +43,7 @@ def homepage_view():
     all_comments = Comment.query.all()
     all_categories = Category.query.all()
     add_comment_form = CommentForm()
+    
     return render_template("homepage.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            all_posts=all_posts,
@@ -63,6 +65,7 @@ def search_posts():
     search_query = request.args.get("q", "")
     posts = search_posts_by_search_query(search_query=search_query)
     add_comment_form = CommentForm()
+    
     return render_template("homepage.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            all_posts=posts,
@@ -92,6 +95,7 @@ def filter_posts():
     posts = filter_posts_by_category(filter)
     all_categories = Category.query.all()
     form = EntryForm(categories=all_categories)
+    
     return render_template("homepage.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            all_posts=posts,
@@ -112,6 +116,7 @@ def list_drafts():
     all_categories = Category.query.all()
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     drafts = Entry.query.filter_by(is_published=False).filter(and_(Entry.user_id == user_id)).order_by(Entry.creation_date.desc())
+    
     return render_template("drafts.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            drafts=drafts,
@@ -131,6 +136,7 @@ def search_drafts():
                                                            user_id=user_id,
                                                            )
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
+    
     return render_template("drafts.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            drafts=drafts,
@@ -157,6 +163,7 @@ def create_new_entry():
             return redirect(url_for("homepage_view"))
         else:
             errors = form.errors
+            
     return render_template("entry_form.html", 
                            user = User.query.filter(User.id == user_id).first(),
                            form=form, 
@@ -173,6 +180,7 @@ def create_new_comment(post_id):
     user_id = session.get('user_id')
     if form.validate_on_submit():
         create_comment(post_id, form=form, user_id=user_id)
+        
     return redirect(url_for("homepage_view"))
 
 
@@ -182,6 +190,7 @@ def delete_comment(comment_id):
     user_id = session.get('user_id')
     comment_to_delete = Comment.query.filter_by(id=comment_id).first_or_404()  
     delete_item(user_id, comment_to_delete)
+    
     return redirect(url_for("homepage_view"))
 
 
@@ -235,6 +244,7 @@ def delete_entry(entry_id):
     homepage = request.form.get("homepage") == "true"
     post_to_delete = Entry.query.filter_by(id=entry_id).first_or_404()        
     delete_item(user_id, post_to_delete)
+    
     return redirect(url_for("homepage_view" if homepage else "list_drafts"))
 
 
@@ -373,6 +383,7 @@ def favorites():
     movies = []
     for favorite in favorites:
         movies.append(tmdb_client.get_single_movie_details(favorite.movie_id))
+        
     return render_template("favorites.html",
                             user = User.query.filter(User.id == user_id).first(),
                             movies=movies,
@@ -460,21 +471,22 @@ def logout():
     return redirect(url_for('homepage_view'))
 
 
-@app.route("/user/", methods=['GET', 'POST'])
-def user():
+@app.route("/delete_user/", methods=['GET', 'POST'])
+def delete_user():
     all_posts = Entry.query.filter_by(is_published=True).order_by(Entry.creation_date.desc())
     drafts = Entry.query.filter_by(is_published=False).order_by(Entry.creation_date.desc())
     all_categories = Category.query.all()
-    form = DeleteUser()
+    form = LoginForm()
     errors = None
     next_url = request.args.get('next')
     user_id = session.get('user_id')
     user = User.query.filter_by(id = user_id).first()
     
     if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
         password = form.password.data
 
-        if password and user.verify_password(password):
+        if username and user.verify_password(password):
             favorites = Favorite.query.filter(Favorite.user_id == user_id).all()
             for favorite in favorites:
                 db.session.delete(favorite)
@@ -486,9 +498,9 @@ def user():
         else:
             errors = form.errors
             flash('Wrong password.', 'danger')
-            redirect(url_for("user"))
+            redirect(url_for("delete_user"))
             
-    return render_template("user.html", 
+    return render_template("delete_user.html", 
                            user=user,
                            form=form,
                            all_categories=all_categories,

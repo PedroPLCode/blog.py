@@ -26,7 +26,8 @@ movies_homepage        GET        /movies/
 search                 GET        /search_movies                  
 search_drafts          GET        /search_drafts/                 
 search_posts           GET        /search/                        
-static                 GET        /templates/<path:filename>   
+static                 GET        /templates/<path:filename>      
+user                   GET, POST  /user/  
 ```
 
 ## Data Base setup:
